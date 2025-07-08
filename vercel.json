@@ -1,0 +1,15 @@
+{
+    "version": 2,
+    "builds": [
+        {
+            "src": "api/collect.js",
+            "use": "@vercel/node"
+        }
+    ],
+    "routes": [
+        {
+            "src": "/api/collect",
+            "dest": "/api/collect.js"
+        }
+    ]
+}
