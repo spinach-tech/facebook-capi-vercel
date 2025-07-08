@@ -26,7 +26,7 @@ export default async function handler(req, res) {
     };
   
     const response = await fetch(
-      'https://graph.facebook.com/v18.0/1638006523573807/events?access_token=YOUR_ACCESS_TOKEN',
+      'https://graph.facebook.com/v18.0/1638006523573807/events?access_token=EAAoE0agTPecBPBXzvOBUWJ4JToEMpIf1bOSWNSBRVywOhJ8awRunC35fHNFoDmSC7Cv5aCPZC46WCjyKBPfYfav47HXSlUaqIXu5tFjt2yGfi6Deaz8z02RlVXRmU442XBijYzLG6VDsnZC4QGRZALOEnEYBMwOVRL3E8vQnhXgmUE9oaXKLbcXncspy3m0swZDZD',
       {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
