@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Facebook CAPI Test Form</title>
+</head>
+
+<body>
+    <h2>Send Test Event to /api/collect</h2>
+    <form id="capi-form">
+        <label>Event Name:
+            <input type="text" name="event_name" value="Lead" required />
+        </label>
+        <br /><br />
+        <label>Email:
+            <input type="email" name="email" value="test@example.com" required />
+        </label>
+        <br /><br />
+        <label>Phone:
+            <input type="tel" name="phone" value="+48123123123" required />
+        </label>
+        <br /><br />
+        <label>fbp (optional):
+            <input type="text" name="fbp" value="fb.1.1699999999.1111111111" />
+        </label>
+        <br /><br />
+        <label>fbc (optional):
+            <input type="text" name="fbc" value="fb.1.1699999999.AbCdEfGhIjKlMnOpQrSt" />
+        </label>
+        <br /><br />
+        <button type="submit">Send Event</button>
+    </form>
+
+    <pre id="response"></pre>
+
+    <script>
+        document.getElementById('capi-form').addEventListener('submit', async function (e) {
+            e.preventDefault();
+
+            const form = e.target;
+            const data = {
+                event_name: form.event_name.value,
+                user_data: {
+                    email: form.email.value,
+                    phone: form.phone.value,
+                    fbp: form.fbp.value || undefined,
+                    fbc: form.fbc.value || undefined
+                }
+            };
+
+            const res = await fetch('/api/collect', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            });
+
+            const result = await res.json();
+            document.getElementById('response').textContent = JSON.stringify(result, null, 2);
+        });
+    </script>
+</body>
+
+</html>
