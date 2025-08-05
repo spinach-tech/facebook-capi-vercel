@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="uk">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Тестовий запит Facebook CAPI</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        button {
+            background: #1877f2;
+            color: white;
+            padding: 15px 30px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 10px 5px;
+        }
+
+        button:hover {
+            background: #166fe5;
+        }
+
+        .result {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 5px;
+            white-space: pre-wrap;
+            font-family: monospace;
+            font-size: 14px;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+
+        .loading {
+            background: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeaa7;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>🧪 Тестовий запит Facebook CAPI</h1>
+
+        <p>Цей тест перевірить роботу вашого API з новим токеном.</p>
+
+        <div>
+            <button onclick="testLocalAPI()">🏠 Тест локального API</button>
+            <button onclick="testVercelAPI()">☁️ Тест Vercel API</button>
+            <button onclick="testDirectFacebook()">📘 Прямий тест Facebook</button>
+        </div>
+
+        <div id="result" class="result" style="display: none;"></div>
+    </div>
+
+    <script>
+        // Тест локального API (якщо запущений локально)
+        async function testLocalAPI() {
+            showResult('🔄 Тестуємо локальний API...', 'loading');
+
+            try {
+                const response = await fetch('/api/collect', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        event_name: 'TestEvent',
+                        event_id: `test_${Date.now()}`,
+                        user_data: {
+                            email: 'test@example.com',
+                            phone: '+380501234567',
+                            fbp: 'fbp_test_123',
+                            fbc: 'fbc_test_123'
+                        }
+                    })
+                });
+
+                const result = await response.json();
+
+                if (response.ok) {
+                    showResult(`✅ Локальний API працює!\n\nСтатус: ${response.status}\nВідповідь: ${JSON.stringify(result, null, 2)}`, 'success');
+                } else {
+                    showResult(`❌ Помилка локального API\n\nСтатус: ${response.status}\nПомилка: ${JSON.stringify(result, null, 2)}`, 'error');
+                }
+            } catch (error) {
+                showResult(`❌ Помилка підключення до локального API\n\nПомилка: ${error.message}\n\nПереконайтеся, що сервер запущений локально.`, 'error');
+            }
+        }
+
+        // Тест Vercel API (якщо розгорнуто на Vercel)
+        async function testVercelAPI() {
+            showResult('🔄 Тестуємо Vercel API...', 'loading');
+
+            // Замініть на ваш реальний URL
+            const vercelUrl = prompt('Введіть URL вашого Vercel сайту (наприклад: https://your-site.vercel.app):');
+
+            if (!vercelUrl) {
+                showResult('❌ URL не введено', 'error');
+                return;
+            }
+
+            try {
+                const response = await fetch(`${vercelUrl}/api/collect`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        event_name: 'TestEvent',
+                        event_id: `test_${Date.now()}`,
+                        user_data: {
+                            email: 'test@example.com',
+                            phone: '+380501234567',
+                            fbp: 'fbp_test_123',
+                            fbc: 'fbc_test_123'
+                        }
+                    })
+                });
+
+                const result = await response.json();
+
+                if (response.ok) {
+                    showResult(`✅ Vercel API працює!\n\nURL: ${vercelUrl}\nСтатус: ${response.status}\nВідповідь: ${JSON.stringify(result, null, 2)}`, 'success');
+                } else {
+                    showResult(`❌ Помилка Vercel API\n\nURL: ${vercelUrl}\nСтатус: ${response.status}\nПомилка: ${JSON.stringify(result, null, 2)}`, 'error');
+                }
+            } catch (error) {
+                showResult(`❌ Помилка підключення до Vercel API\n\nURL: ${vercelUrl}\nПомилка: ${error.message}`, 'error');
+            }
+        }
+
+        // Прямий тест Facebook API (для перевірки токена)
+        async function testDirectFacebook() {
+            showResult('🔄 Тестуємо прямий запит до Facebook...', 'loading');
+
+            const accessToken = prompt('Введіть ваш Facebook Access Token:');
+            const pixelId = prompt('Введіть ваш Pixel ID:', '1038872511763849');
+
+            if (!accessToken || !pixelId) {
+                showResult('❌ Токен або Pixel ID не введено', 'error');
+                return;
+            }
+
+            try {
+                // Хешуємо email та телефон
+                const email = 'test@example.com';
+                const phone = '+380501234567';
+
+                const hashedEmail = await hash(email);
+                const hashedPhone = await hash(phone);
+
+                const payload = {
+                    event_name: 'TestEvent',
+                    event_time: Math.floor(Date.now() / 1000),
+                    event_id: `test_${Date.now()}`,
+                    action_source: "website",
+                    user_data: {
+                        em: hashedEmail,
+                        ph: hashedPhone,
+                        fbp: 'fbp_test_123',
+                        fbc: 'fbc_test_123',
+                        client_user_agent: navigator.userAgent,
+                        client_ip_address: "127.0.0.1"
+                    }
+                };
+
+                const response = await fetch(
+                    `https://graph.facebook.com/v18.0/${pixelId}/events?access_token=${accessToken}`,
+                    {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ data: [payload] })
+                    }
+                );
+
+                const result = await response.json();
+
+                if (response.ok) {
+                    showResult(`✅ Прямий запит до Facebook успішний!\n\nPixel ID: ${pixelId}\nСтатус: ${response.status}\nВідповідь: ${JSON.stringify(result, null, 2)}`, 'success');
+                } else {
+                    showResult(`❌ Помилка прямого запиту до Facebook\n\nPixel ID: ${pixelId}\nСтатус: ${response.status}\nПомилка: ${JSON.stringify(result, null, 2)}`, 'error');
+                }
+            } catch (error) {
+                showResult(`❌ Помилка підключення до Facebook\n\nПомилка: ${error.message}`, 'error');
+            }
+        }
+
+        // Функція для хешування
+        async function hash(input) {
+            const encoder = new TextEncoder();
+            const data = encoder.encode(input.trim().toLowerCase());
+            const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+            const hashArray = Array.from(new Uint8Array(hashBuffer));
+            return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+        }
+
+        // Функція для показу результату
+        function showResult(message, type) {
+            const resultDiv = document.getElementById('result');
+            resultDiv.textContent = message;
+            resultDiv.className = `result ${type}`;
+            resultDiv.style.display = 'block';
+        }
+
+        // Автозапуск інформації
+        document.addEventListener('DOMContentLoaded', function () {
+            showResult(`ℹ️ Готово до тестування!\n\nВиберіть один з варіантів тесту:\n1. 🏠 Локальний API - якщо сервер запущений локально\n2. ☁️ Vercel API - якщо розгорнуто на Vercel\n3. 📘 Прямий Facebook - для перевірки токена`, 'info');
+        });
+    </script>
+</body>
+
+</html>

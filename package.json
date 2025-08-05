@@ -1,4 +1,17 @@
 {
   "name": "facebook-capi-vercel",
-  "type": "module"
+  "type": "module",
+  "scripts": {
+    "dev": "vercel dev",
+    "test": "node test-api.js",
+    "test:local": "node test-api.js local",
+    "test:facebook": "node test-api.js facebook",
+    "test:all": "node test-api.js all"
+  },
+  "dependencies": {
+    "node-fetch": "^3.3.2"
+  },
+  "devDependencies": {
+    "vercel": "^32.0.0"
+  }
 }

@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="uk">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Facebook CAPI - Serverless Version</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+
+        input,
+        select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+
+        button {
+            background: #1877f2;
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        button:hover {
+            background: #166fe5;
+        }
+
+        .result {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 5px;
+            display: none;
+        }
+
+        .success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .config-section {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>Facebook Conversions API - Serverless Version</h1>
+
+        <div class="config-section">
+            <h3>⚙️ Налаштування</h3>
+            <div class="form-group">
+                <label for="accessToken">Facebook Access Token:</label>
+                <input type="password" id="accessToken" placeholder="Введіть ваш access token">
+            </div>
+            <div class="form-group">
+                <label for="pixelId">Pixel ID:</label>
+                <input type="text" id="pixelId" placeholder="1038872511763849">
+            </div>
+        </div>
+
+        <h3>📊 Відправка події</h3>
+        <div class="form-group">
+            <label for="eventName">Назва події:</label>
+            <select id="eventName">
+                <option value="Purchase">Purchase (Покупка)</option>
+                <option value="Lead">Lead (Лід)</option>
+                <option value="CompleteRegistration">CompleteRegistration (Реєстрація)</option>
+                <option value="AddToCart">AddToCart (Додано в кошик)</option>
+                <option value="InitiateCheckout">InitiateCheckout (Початок оформлення)</option>
+                <option value="ViewContent">ViewContent (Перегляд контенту)</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="email">Email користувача:</label>
+            <input type="email" id="email" placeholder="user@example.com">
+        </div>
+
+        <div class="form-group">
+            <label for="phone">Телефон користувача:</label>
+            <input type="tel" id="phone" placeholder="+380501234567">
+        </div>
+
+        <div class="form-group">
+            <label for="fbp">Facebook Browser ID (FBP):</label>
+            <input type="text" id="fbp" placeholder="fbp_123456789012345">
+        </div>
+
+        <div class="form-group">
+            <label for="fbc">Facebook Click ID (FBC):</label>
+            <input type="text" id="fbc" placeholder="fbc_123456789012345">
+        </div>
+
+        <button onclick="sendEvent()">📤 Відправити подію</button>
+
+        <div id="result" class="result"></div>
+    </div>
+
+    <script>
+        // Функція для хешування (SHA-256)
+        async function hash(input) {
+            const encoder = new TextEncoder();
+            const data = encoder.encode(input.trim().toLowerCase());
+            const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+            const hashArray = Array.from(new Uint8Array(hashBuffer));
+            return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+        }
+
+        // Функція для відправки події
+        async function sendEvent() {
+            const accessToken = document.getElementById('accessToken').value;
+            const pixelId = document.getElementById('pixelId').value;
+            const eventName = document.getElementById('eventName').value;
+            const email = document.getElementById('email').value;
+            const phone = document.getElementById('phone').value;
+            const fbp = document.getElementById('fbp').value;
+            const fbc = document.getElementById('fbc').value;
+
+            // Валідація
+            if (!accessToken || !pixelId || !email || !phone) {
+                showResult('Будь ласка, заповніть всі обов\'язкові поля', 'error');
+                return;
+            }
+
+            try {
+                // Хешуємо дані
+                const hashedEmail = await hash(email);
+                const hashedPhone = await hash(phone);
+
+                // Формуємо payload
+                const payload = {
+                    event_name: eventName,
+                    event_time: Math.floor(Date.now() / 1000),
+                    event_id: `evt_${Date.now()}`,
+                    action_source: "website",
+                    user_data: {
+                        em: hashedEmail,
+                        ph: hashedPhone,
+                        fbp: fbp || undefined,
+                        fbc: fbc || undefined,
+                        client_user_agent: navigator.userAgent,
+                        client_ip_address: "127.0.0.1" // На клієнті не можемо отримати реальну IP
+                    }
+                };
+
+                // Відправляємо запит
+                const response = await fetch(
+                    `https://graph.facebook.com/v18.0/${pixelId}/events?access_token=${accessToken}`,
+                    {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ data: [payload] })
+                    }
+                );
+
+                const result = await response.json();
+
+                if (response.ok) {
+                    showResult(`✅ Подію успішно відправлено! Event ID: ${result.events_received?.[0]?.event_id || 'N/A'}`, 'success');
+                } else {
+                    showResult(`❌ Помилка: ${result.error?.message || JSON.stringify(result)}`, 'error');
+                }
+
+            } catch (error) {
+                showResult(`❌ Помилка мережі: ${error.message}`, 'error');
+            }
+        }
+
+        // Функція для показу результату
+        function showResult(message, type) {
+            const resultDiv = document.getElementById('result');
+            resultDiv.textContent = message;
+            resultDiv.className = `result ${type}`;
+            resultDiv.style.display = 'block';
+        }
+
+        // Автозаповнення прикладами
+        document.addEventListener('DOMContentLoaded', function () {
+            // Можна додати приклади для тестування
+            if (!document.getElementById('pixelId').value) {
+                document.getElementById('pixelId').value = '1038872511763849';
+            }
+        });
+    </script>
+</body>
+
+</html>

@@ -21,6 +21,14 @@ export default async function handler(req, res) {
     return res.status(400).json({ error: 'Missing required fields' });
   }
 
+  // Перевіряємо наявність access token
+  const accessToken = process.env.FACEBOOK_ACCESS_TOKEN || 'EAAoE0agTPecBPMctYn9yAJPJ6R1hQXJZCIlhx8LcOzRSW56vj2FeZCCj5NJHuxdJpuK4eNhfZAkcD86cH3eQfaBXXKdXzOZAAZBQuyozW7Gcl7iLTxHnVSzujiZBYVtxsTYjmphEcZBNH9XE1W0npGO2YZAgg1R1YaMGTrFrWwAgOsESZA3JhxO39nJZCl6GIYnmEx7gZDZD'
+  const pixelId = process.env.FACEBOOK_PIXEL_ID || '1321174279619179';
+  
+  if (!accessToken) {
+    return res.status(500).json({ error: 'Facebook access token not configured' });
+  }
+
   const payload = {
     event_name,
     event_time: Math.floor(Date.now() / 1000),
@@ -37,7 +45,7 @@ export default async function handler(req, res) {
   };
 
   const response = await fetch(
-    'https://graph.facebook.com/v18.0/1038872511763849/events?access_token=EAAoE0agTPecBPBXzvOBUWJ4JToEMpIf1bOSWNSBRVywOhJ8awRunC35fHNFoDmSC7Cv5aCPZC46WCjyKBPfYfav47HXSlUaqIXu5tFjt2yGfi6Deaz8z02RlVXRmU442XBijYzLG6VDsnZC4QGRZALOEnEYBMwOVRL3E8vQnhXgmUE9oaXKLbcXncspy3m0swZDZD',
+    `https://graph.facebook.com/v18.0/${pixelId}/events?access_token=${accessToken}`,
     {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
