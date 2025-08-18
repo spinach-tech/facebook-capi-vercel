@@ -22,9 +22,10 @@ export default async function handler(req, res) {
   }
 
   // Перевіряємо наявність access token
-  const accessToken = process.env.FACEBOOK_ACCESS_TOKEN || 'EAAoE0agTPecBPMctYn9yAJPJ6R1hQXJZCIlhx8LcOzRSW56vj2FeZCCj5NJHuxdJpuK4eNhfZAkcD86cH3eQfaBXXKdXzOZAAZBQuyozW7Gcl7iLTxHnVSzujiZBYVtxsTYjmphEcZBNH9XE1W0npGO2YZAgg1R1YaMGTrFrWwAgOsESZA3JhxO39nJZCl6GIYnmEx7gZDZD'
-  const pixelId = process.env.FACEBOOK_PIXEL_ID || '1321174279619179';
-  
+  const accessToken = process.env.FACEBOOK_ACCESS_TOKEN || 'EAAQDi47cnngBPLwoKVdDtrL5bCSU8brzGspI2R7VRKkRaEfIDmE5V1z3RskOzb7AN6IvkI8nZAKLwBA7x0SnarbHCmki2vlMdW2N7RmvZAiCLRKVS0ZBGf7gZCSeOnI5kW6TqU5lZA3iyIrk6KyZASmE2iUzn66Pew9z2tE61ZA4r62FVsOgu0AYfx4y7MxZAwmZBHQZDZD'
+  const pixelId = process.env.FACEBOOK_PIXEL_ID || '1100373135562571';
+
+
   if (!accessToken) {
     return res.status(500).json({ error: 'Facebook access token not configured' });
   }
